@@ -193,16 +193,81 @@ async function downloadAruljohn(repoName: string, targetDir: string): Promise<nu
 	return count;
 }
 
+interface TehShrikeItem {
+	type: string;
+	chapterNumber?: number;
+	verseNumber?: number;
+	value?: string;
+}
+
+async function downloadTehShrike(repoName: string, targetDir: string): Promise<number> {
+	const baseUrl = `https://raw.githubusercontent.com/TehShrike/${repoName}/master/json`;
+	let count = 0;
+
+	for (const book of BOOKS) {
+		const fileName = book.slug.replace(/-/g, '');
+		const url = `${baseUrl}/${fileName}.json`;
+
+		const res = await fetch(url);
+		if (!res.ok) {
+			console.warn(`  Missing: ${book.name}`);
+			continue;
+		}
+
+		const items: TehShrikeItem[] = await res.json();
+		const verseItems = items.filter(
+			(item) =>
+				(item.type === 'paragraph text' || item.type === 'line text') &&
+				item.chapterNumber != null &&
+				item.verseNumber != null &&
+				item.value
+		);
+
+		const chaptersMap = new Map<number, Map<number, string>>();
+		for (const item of verseItems) {
+			const ch = item.chapterNumber!;
+			const v = item.verseNumber!;
+			if (!chaptersMap.has(ch)) chaptersMap.set(ch, new Map());
+			const verses = chaptersMap.get(ch)!;
+			const existing = verses.get(v) ?? '';
+			verses.set(v, (existing + ' ' + item.value!.trim()).trim());
+		}
+
+		const bookData: BookData = {
+			book: book.name,
+			chapters: [...chaptersMap.entries()]
+				.sort(([a], [b]) => a - b)
+				.map(([ch, verses]) => ({
+					chapter: String(ch),
+					verses: [...verses.entries()]
+						.sort(([a], [b]) => a - b)
+						.map(([v, text]) => ({
+							verse: String(v),
+							text
+						}))
+				}))
+		};
+
+		await writeFile(path.join(targetDir, `${book.slug}.json`), JSON.stringify(bookData));
+		count++;
+	}
+
+	return count;
+}
+
 interface TranslationSource {
 	id: string;
 	name: string;
-	type: 'scrollmapper' | 'aruljohn';
+	type: 'scrollmapper' | 'aruljohn' | 'tehshrike';
 	sourceId: string;
 }
 
 const TRANSLATIONS: TranslationSource[] = [
 	// English - aruljohn
 	{ id: 'kjv', name: 'King James Version', type: 'aruljohn', sourceId: 'Bible-kjv' },
+
+	// English - tehshrike
+	{ id: 'web', name: 'World English Bible', type: 'tehshrike', sourceId: 'world-english-bible' },
 
 	// English - scrollmapper
 	{ id: 'akjv', name: 'American King James Version', type: 'scrollmapper', sourceId: 'AKJV' },
@@ -284,6 +349,8 @@ async function main() {
 			let count: number;
 			if (t.type === 'aruljohn') {
 				count = await downloadAruljohn(t.sourceId, dir);
+			} else if (t.type === 'tehshrike') {
+				count = await downloadTehShrike(t.sourceId, dir);
 			} else {
 				count = await downloadScrollmapper(t.sourceId, dir);
 			}

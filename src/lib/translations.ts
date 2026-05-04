@@ -66,6 +66,13 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		description: 'A transparent, literal translation for English readers.'
 	},
 	{
+		id: 'web',
+		name: 'World English Bible',
+		abbreviation: 'WEB',
+		language: 'English',
+		description: 'A modern, easy-to-read public domain translation.'
+	},
+	{
 		id: 'drc',
 		name: 'Douay-Rheims Challoner',
 		abbreviation: 'DRC',
