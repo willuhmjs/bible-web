@@ -100,11 +100,12 @@
 							{:else}
 								<button
 									class="btn btn-primary btn-sm"
+									style="min-width: 100px;"
 									onclick={() => download(t.id)}
 									disabled={downloading !== null}
 								>
 									{#if downloading === t.id}
-										<span class="spinner"></span> Downloading...
+										<span class="spinner spinner-sm"></span>
 									{:else}
 										Download
 									{/if}
