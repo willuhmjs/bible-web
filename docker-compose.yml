@@ -1,0 +1,16 @@
+services:
+  bible:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - bible-data:/app/data
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+
+volumes:
+  bible-data:

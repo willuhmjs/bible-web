@@ -1,0 +1,16 @@
+node_modules
+.svelte-kit
+build
+.env
+.env.*
+!.env.example
+*.log
+.git
+.gitignore
+.vscode
+.idea
+Dockerfile*
+docker-compose*
+.DS_Store
+coverage
+data
