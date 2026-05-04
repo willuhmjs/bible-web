@@ -235,6 +235,8 @@
 		</div>
 	</div>
 
+	<h1 class="chapter-title">{data.bookName} {data.chapter}</h1>
+
 	<div
 		class="scripture"
 		style="font-size: {fontSize}px; font-family: {fontFamilyMap[fontFamily]}; line-height: {lineHeightMap[lineSpacing]};"

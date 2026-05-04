@@ -468,6 +468,12 @@ button {
 	margin-bottom: 4px;
 }
 
+.chapter-title {
+	font-size: 24px;
+	font-weight: 500;
+	margin-bottom: 12px;
+}
+
 .chapter-header .meta {
 	font-size: 14px;
 	color: var(--color-text-muted);
