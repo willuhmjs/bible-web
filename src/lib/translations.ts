@@ -1,7 +1,7 @@
 import type { TranslationMeta } from './types.js';
 
 export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
-	// ── English ──────────────────────────────────────────────
+	// ── English (ordered by popularity) ─────────────────────
 	{
 		id: 'kjv',
 		name: 'King James Version',
@@ -10,18 +10,11 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		description: 'The classic 1611 King James Version. Public domain.'
 	},
 	{
-		id: 'akjv',
-		name: 'American King James Version',
-		abbreviation: 'AKJV',
+		id: 'web',
+		name: 'World English Bible',
+		abbreviation: 'WEB',
 		language: 'English',
-		description: 'A modernized spelling update of the KJV. Public domain.'
-	},
-	{
-		id: 'kjvpce',
-		name: 'KJV Pure Cambridge Edition',
-		abbreviation: 'KJVPCE',
-		language: 'English',
-		description: 'The definitive standard text of the King James Bible.'
+		description: 'A modern, easy-to-read public domain translation.'
 	},
 	{
 		id: 'asv',
@@ -38,62 +31,12 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		description: 'A modern, accurate, and readable English translation.'
 	},
 	{
-		id: 'bbe',
-		name: 'Bible in Basic English',
-		abbreviation: 'BBE',
-		language: 'English',
-		description: 'A translation using simplified English vocabulary.'
-	},
-	{
-		id: 'oeb',
-		name: 'Open English Bible',
-		abbreviation: 'OEB',
-		language: 'English',
-		description: 'A free, open-licensed modern English translation.'
-	},
-	{
-		id: 'nheb',
-		name: 'New Heart English Bible',
-		abbreviation: 'NHEB',
-		language: 'English',
-		description: 'A public domain modern English translation.'
-	},
-	{
-		id: 'leb',
-		name: 'Lexham English Bible',
-		abbreviation: 'LEB',
-		language: 'English',
-		description: 'A transparent, literal translation for English readers.'
-	},
-	{
-		id: 'web',
-		name: 'World English Bible',
-		abbreviation: 'WEB',
-		language: 'English',
-		description: 'A modern, easy-to-read public domain translation.'
-	},
-	{
 		id: 'drc',
 		name: 'Douay-Rheims Challoner',
 		abbreviation: 'DRC',
 		language: 'English',
 		description: 'Classic Roman Catholic translation from the Latin Vulgate. Includes Deuterocanonical books. Public domain.',
 		category: 'catholic'
-	},
-	{
-		id: 'cpdv',
-		name: 'Catholic Public Domain Version',
-		abbreviation: 'CPDV',
-		language: 'English',
-		description: 'A modern Roman Catholic translation. Includes Deuterocanonical books. Public domain.',
-		category: 'catholic'
-	},
-	{
-		id: 'darby',
-		name: 'Darby Translation',
-		abbreviation: 'DBY',
-		language: 'English',
-		description: 'John Nelson Darby\'s 1890 translation. Public domain.'
 	},
 	{
 		id: 'ylt',
@@ -103,32 +46,11 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		description: 'An extremely literal 1862 translation by Robert Young.'
 	},
 	{
-		id: 'litv',
-		name: 'Literal Translation of the Holy Bible',
-		abbreviation: 'LITV',
+		id: 'darby',
+		name: 'Darby Translation',
+		abbreviation: 'DBY',
 		language: 'English',
-		description: 'Jay P. Green\'s literal translation. Public domain.'
-	},
-	{
-		id: 'mkjv',
-		name: 'Modern King James Version',
-		abbreviation: 'MKJV',
-		language: 'English',
-		description: 'A modern language update of the KJV by Jay P. Green.'
-	},
-	{
-		id: 'rnkjv',
-		name: 'Restored Name King James Version',
-		abbreviation: 'RNKJV',
-		language: 'English',
-		description: 'KJV with Hebrew names for God restored.'
-	},
-	{
-		id: 'rwebster',
-		name: 'Revised Webster Version',
-		abbreviation: 'RWB',
-		language: 'English',
-		description: 'Noah Webster\'s 1833 revision of the KJV.'
+		description: 'John Nelson Darby\'s 1890 translation. Public domain.'
 	},
 	{
 		id: 'geneva',
@@ -145,6 +67,84 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		description: 'William Tyndale\'s pioneering 1525 English translation.'
 	},
 	{
+		id: 'akjv',
+		name: 'American King James Version',
+		abbreviation: 'AKJV',
+		language: 'English',
+		description: 'A modernized spelling update of the KJV. Public domain.'
+	},
+	{
+		id: 'kjvpce',
+		name: 'KJV Pure Cambridge Edition',
+		abbreviation: 'KJVPCE',
+		language: 'English',
+		description: 'The definitive standard text of the King James Bible.'
+	},
+	{
+		id: 'mkjv',
+		name: 'Modern King James Version',
+		abbreviation: 'MKJV',
+		language: 'English',
+		description: 'A modern language update of the KJV by Jay P. Green.'
+	},
+	{
+		id: 'bbe',
+		name: 'Bible in Basic English',
+		abbreviation: 'BBE',
+		language: 'English',
+		description: 'A translation using simplified English vocabulary.'
+	},
+	{
+		id: 'leb',
+		name: 'Lexham English Bible',
+		abbreviation: 'LEB',
+		language: 'English',
+		description: 'A transparent, literal translation for English readers.'
+	},
+	{
+		id: 'nheb',
+		name: 'New Heart English Bible',
+		abbreviation: 'NHEB',
+		language: 'English',
+		description: 'A public domain modern English translation.'
+	},
+	{
+		id: 'oeb',
+		name: 'Open English Bible',
+		abbreviation: 'OEB',
+		language: 'English',
+		description: 'A free, open-licensed modern English translation.'
+	},
+	{
+		id: 'cpdv',
+		name: 'Catholic Public Domain Version',
+		abbreviation: 'CPDV',
+		language: 'English',
+		description: 'A modern Roman Catholic translation. Includes Deuterocanonical books. Public domain.',
+		category: 'catholic'
+	},
+	{
+		id: 'litv',
+		name: 'Literal Translation of the Holy Bible',
+		abbreviation: 'LITV',
+		language: 'English',
+		description: 'Jay P. Green\'s literal translation. Public domain.'
+	},
+	{
+		id: 'jps',
+		name: 'Jewish Publication Society (1917)',
+		abbreviation: 'JPS',
+		language: 'English',
+		description: 'The 1917 JPS Tanakh translation. Old Testament only.'
+	},
+	{
+		id: 'jubilee',
+		name: 'Jubilee Bible 2000',
+		abbreviation: 'JUB',
+		language: 'English',
+		description: 'A modern translation from the original languages.'
+	},
+	{
 		id: 'wycliffe',
 		name: 'Wycliffe Bible',
 		abbreviation: 'WYC',
@@ -157,6 +157,20 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		abbreviation: 'REB',
 		language: 'English',
 		description: 'Joseph Rotherham\'s 1902 translation with emphasis marks.'
+	},
+	{
+		id: 'rwebster',
+		name: 'Revised Webster Version',
+		abbreviation: 'RWB',
+		language: 'English',
+		description: 'Noah Webster\'s 1833 revision of the KJV.'
+	},
+	{
+		id: 'rnkjv',
+		name: 'Restored Name King James Version',
+		abbreviation: 'RNKJV',
+		language: 'English',
+		description: 'KJV with Hebrew names for God restored.'
 	},
 	{
 		id: 'noyes',
@@ -172,19 +186,32 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		language: 'English',
 		description: 'H.T. Anderson\'s 1865 New Testament translation.'
 	},
+
+	// ── Spanish ─────────────────────────────────────────────
 	{
-		id: 'jps',
-		name: 'Jewish Publication Society (1917)',
-		abbreviation: 'JPS',
-		language: 'English',
-		description: 'The 1917 JPS Tanakh translation. Old Testament only.'
+		id: 'sp',
+		name: 'Spanish Purificada',
+		abbreviation: 'SP',
+		language: 'Spanish',
+		description: 'La Biblia Española Purificada.'
 	},
+
+	// ── Portuguese ──────────────────────────────────────────
 	{
-		id: 'jubilee',
-		name: 'Jubilee Bible 2000',
-		abbreviation: 'JUB',
-		language: 'English',
-		description: 'A modern translation from the original languages.'
+		id: 'ptbr',
+		name: 'Bible Livre',
+		abbreviation: 'BLV',
+		language: 'Portuguese',
+		description: 'A Bíblia Livre em português.'
+	},
+
+	// ── Russian ─────────────────────────────────────────────
+	{
+		id: 'russyn',
+		name: 'Russian Synodal Translation',
+		abbreviation: 'RST',
+		language: 'Russian',
+		description: 'Синодальный перевод Библии.'
 	},
 
 	// ── French ──────────────────────────────────────────────
@@ -219,33 +246,6 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		description: 'Die wortgetreue Elberfelder Übersetzung von 1905.'
 	},
 
-	// ── Spanish ─────────────────────────────────────────────
-	{
-		id: 'sp',
-		name: 'Spanish Purificada',
-		abbreviation: 'SP',
-		language: 'Spanish',
-		description: 'La Biblia Española Purificada.'
-	},
-
-	// ── Portuguese ──────────────────────────────────────────
-	{
-		id: 'ptbr',
-		name: 'Bible Livre',
-		abbreviation: 'BLV',
-		language: 'Portuguese',
-		description: 'A Bíblia Livre em português.'
-	},
-
-	// ── Russian ─────────────────────────────────────────────
-	{
-		id: 'russyn',
-		name: 'Russian Synodal Translation',
-		abbreviation: 'RST',
-		language: 'Russian',
-		description: 'Синодальный перевод Библии.'
-	},
-
 	// ── Dutch ───────────────────────────────────────────────
 	{
 		id: 'dutsvv',
@@ -255,15 +255,6 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		description: 'De klassieke Nederlandse Statenvertaling.'
 	},
 
-	// ── Finnish ─────────────────────────────────────────────
-	{
-		id: 'finpr',
-		name: 'Finnish Pyhä Raamattu',
-		abbreviation: 'PR',
-		language: 'Finnish',
-		description: 'Suomalainen Pyhä Raamattu -käännös.'
-	},
-
 	// ── Czech ───────────────────────────────────────────────
 	{
 		id: 'czebkr',
@@ -271,6 +262,15 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		abbreviation: 'BKR',
 		language: 'Czech',
 		description: 'Klasický český překlad Bible Kralická.'
+	},
+
+	// ── Finnish ─────────────────────────────────────────────
+	{
+		id: 'finpr',
+		name: 'Finnish Pyhä Raamattu',
+		abbreviation: 'PR',
+		language: 'Finnish',
+		description: 'Suomalainen Pyhä Raamattu -käännös.'
 	}
 ];
 
