@@ -1,11 +1,13 @@
 <script lang="ts">
 	import '../app.css';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { getMode, toggleMode } from '$lib/mode.svelte.js';
+	import { getMode, toggleMode, getTranslation, setTranslation, resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
 
 	let { children, data } = $props();
 
 	let theme = $state('light');
+	let showTranslations = $state(false);
 
 	function toggleTheme() {
 		theme = theme === 'light' ? 'dark' : 'light';
@@ -17,6 +19,27 @@
 	};
 
 	const mode = $derived(getMode());
+	const isCatholic = $derived(mode === 'catholic');
+
+	const installedIds = $derived(
+		(data.installedTranslations ?? []).map((t: { id: string }) => t.id)
+	);
+	const translation = $derived(resolveTranslation(installedIds));
+
+	const filteredTranslations = $derived(
+		(data.installedTranslations ?? []).filter((t: { id: string }) =>
+			isCatholic ? isCatholicTranslation(t.id) : !isCatholicTranslation(t.id)
+		)
+	);
+
+	function switchTranslation(id: string) {
+		showTranslations = false;
+		setTranslation(id);
+		const match = page.url.pathname.match(/^\/bible\/[^/]+\/(.+)/);
+		if (match) {
+			goto(`/bible/${id}/${match[1]}`);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -32,6 +55,29 @@
 		<a href="/" class="nav-link" class:active={page.url.pathname === '/'}>Read</a>
 		<a href="/search" class="nav-link" class:active={isActive('/search')}>Search</a>
 		<a href="/translations" class="nav-link" class:active={isActive('/translations')}>Translations</a>
+		{#if filteredTranslations.length > 0}
+			<div class="translation-selector">
+				<button class="translation-selector-btn" onclick={() => showTranslations = !showTranslations}>
+					{translation.toUpperCase()} &#9662;
+				</button>
+				{#if showTranslations}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div style="position: fixed; inset: 0; z-index: 199;" onclick={() => showTranslations = false}></div>
+					<div class="translation-dropdown">
+						{#each filteredTranslations as t}
+							<button
+								class="translation-dropdown-item"
+								class:active={t.id === translation}
+								onclick={() => switchTranslation(t.id)}
+							>
+								<strong>{t.abbreviation}</strong> &mdash; {t.name}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/if}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div

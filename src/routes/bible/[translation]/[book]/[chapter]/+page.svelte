@@ -3,7 +3,6 @@
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
 	import { BOOKS } from '$lib/books.js';
-	import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
 	import { getMode, setTranslation, resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
 
@@ -11,7 +10,6 @@
 
 	// ── Picker state ──
 	let showPicker = $state(false);
-	let showTranslations = $state(false);
 	let pickerBook = $state<string | null>(null);
 
 	const currentBook = $derived(BOOKS.find((b) => b.slug === data.bookSlug));
@@ -40,21 +38,7 @@
 		goto(`/bible/${data.translation}/${bookSlug}/${chapter}`);
 	}
 
-	function switchTranslation(id: string) {
-		showTranslations = false;
-		setTranslation(id);
-		goto(`/bible/${id}/${data.bookSlug}/${data.chapter}`);
-	}
-
 	const parentData = $derived(page.data as { installedTranslations: Array<{ id: string; abbreviation: string; name: string }> });
-
-	const filteredTranslations = $derived(
-		parentData.installedTranslations.filter((t) =>
-			isCatholic
-				? isCatholicTranslation(t.id)
-				: !isCatholicTranslation(t.id)
-		)
-	);
 
 	$effect(() => {
 		const currentIsCatholic = isCatholicTranslation(data.translation);
@@ -171,7 +155,6 @@
 			goto(data.nextLink);
 		} else if (e.key === 'Escape') {
 			if (showPicker) { showPicker = false; pickerBook = null; }
-			else if (showTranslations) showTranslations = false;
 			else if (showSettings) showSettings = false;
 			else if (selectedVerses.size > 0) clearSelection();
 		}
@@ -196,28 +179,6 @@
 			<button class="btn btn-secondary btn-sm" onclick={() => { showPicker = true; pickerBook = null; }}>
 				{data.bookName} {data.chapter} &#9662;
 			</button>
-
-			<div class="translation-selector">
-				<button class="translation-selector-btn" onclick={() => showTranslations = !showTranslations}>
-					{data.translation.toUpperCase()} &#9662;
-				</button>
-				{#if showTranslations}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div style="position: fixed; inset: 0; z-index: 199;" onclick={() => showTranslations = false}></div>
-					<div class="translation-dropdown">
-						{#each filteredTranslations as t}
-							<button
-								class="translation-dropdown-item"
-								class:active={t.id === data.translation}
-								onclick={() => switchTranslation(t.id)}
-							>
-								<strong>{t.abbreviation}</strong> &mdash; {t.name}
-							</button>
-						{/each}
-					</div>
-				{/if}
-			</div>
 
 			<a href="/bible/{data.translation}/{data.bookSlug}/{data.chapter}/parallel" class="btn btn-secondary btn-sm">
 				Parallel

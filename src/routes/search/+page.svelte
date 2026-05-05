@@ -1,26 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
-	import { getMode, getTranslation, setTranslation, resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
+	import { resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
 
 	const initialQuery = data.query;
 	let query = $state(initialQuery);
-
-	const isCatholic = $derived(getMode() === 'catholic');
-
-	const installedTranslations = $derived(
-		AVAILABLE_TRANSLATIONS.filter((t) =>
-			data.installedIds.includes(t.id) && (
-				isCatholic
-					? isCatholicTranslation(t.id)
-					: !isCatholicTranslation(t.id)
-			)
-		)
-	);
 
 	const translation = $derived(resolveTranslation(data.installedIds));
 
@@ -58,15 +45,6 @@
 			/>
 			<button type="submit" class="btn btn-primary">Search</button>
 		</div>
-		{#if installedTranslations.length > 1}
-			<div class="search-filters">
-				<select class="search-select" value={translation} onchange={(e) => { setTranslation((e.target as HTMLSelectElement).value); if (data.query) doSearch(); }}>
-					{#each installedTranslations as t}
-						<option value={t.id}>{t.abbreviation}</option>
-					{/each}
-				</select>
-			</div>
-		{/if}
 	</form>
 
 	{#if data.query}
