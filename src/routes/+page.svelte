@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { BOOKS } from '$lib/books.js';
-	import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
-	import { getMode, getLastTranslation } from '$lib/mode.svelte.js';
+	import { getMode, resolveTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
@@ -27,20 +26,10 @@
 		selectedBook ? BOOKS.find((b) => b.slug === selectedBook) : null
 	);
 
-	const translation = $derived.by(() => {
-		const targetMode = isCatholic ? 'catholic' : 'protestant';
-		const last = getLastTranslation(targetMode);
-		const installed = (data as any).installedTranslations ?? [];
-		const modeTranslations = installed.filter((t: { id: string }) =>
-			isCatholic
-				? AVAILABLE_TRANSLATIONS.find((a) => a.id === t.id)?.category === 'catholic'
-				: AVAILABLE_TRANSLATIONS.find((a) => a.id === t.id)?.category !== 'catholic'
-		);
-		if (last && modeTranslations.some((t: { id: string }) => t.id === last)) {
-			return last;
-		}
-		return modeTranslations[0]?.id ?? data.defaultTranslation ?? 'kjv';
-	});
+	const installedIds = $derived(
+		((data as any).installedTranslations ?? []).map((t: { id: string }) => t.id)
+	);
+	const translation = $derived(resolveTranslation(installedIds));
 
 	const votdVerses = [
 		{ text: 'For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.', ref: 'John 3:16' },

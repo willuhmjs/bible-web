@@ -2,15 +2,13 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
-	import { getMode, getLastTranslation } from '$lib/mode.svelte.js';
+	import { getMode, getTranslation, setTranslation, resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
 
 	const initialQuery = data.query;
-	const initialTranslation = data.translation;
 	let query = $state(initialQuery);
-	let translation = $state(initialTranslation);
 
 	const isCatholic = $derived(getMode() === 'catholic');
 
@@ -18,21 +16,13 @@
 		AVAILABLE_TRANSLATIONS.filter((t) =>
 			data.installedIds.includes(t.id) && (
 				isCatholic
-					? t.category === 'catholic'
-					: t.category !== 'catholic'
+					? isCatholicTranslation(t.id)
+					: !isCatholicTranslation(t.id)
 			)
 		)
 	);
 
-	$effect(() => {
-		if (!installedTranslations.some((t) => t.id === translation)) {
-			const targetMode = isCatholic ? 'catholic' : 'protestant';
-			const last = getLastTranslation(targetMode);
-			translation = installedTranslations.find((t) => t.id === last)?.id
-				?? installedTranslations[0]?.id
-				?? data.translation;
-		}
-	});
+	const translation = $derived(resolveTranslation(data.installedIds));
 
 	function doSearch(e?: Event) {
 		e?.preventDefault();
@@ -70,7 +60,7 @@
 		</div>
 		{#if installedTranslations.length > 1}
 			<div class="search-filters">
-				<select class="search-select" bind:value={translation} onchange={() => { if (data.query) doSearch(); }}>
+				<select class="search-select" value={translation} onchange={(e) => { setTranslation((e.target as HTMLSelectElement).value); if (data.query) doSearch(); }}>
 					{#each installedTranslations as t}
 						<option value={t.id}>{t.abbreviation}</option>
 					{/each}

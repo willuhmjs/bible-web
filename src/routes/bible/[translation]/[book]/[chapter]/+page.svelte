@@ -4,7 +4,7 @@
 	import { browser } from '$app/environment';
 	import { BOOKS } from '$lib/books.js';
 	import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
-	import { getMode, getLastTranslation, setLastTranslation } from '$lib/mode.svelte.js';
+	import { getMode, setTranslation, resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
@@ -42,6 +42,7 @@
 
 	function switchTranslation(id: string) {
 		showTranslations = false;
+		setTranslation(id);
 		goto(`/bible/${id}/${data.bookSlug}/${data.chapter}`);
 	}
 
@@ -50,29 +51,25 @@
 	const filteredTranslations = $derived(
 		parentData.installedTranslations.filter((t) =>
 			isCatholic
-				? AVAILABLE_TRANSLATIONS.find((a) => a.id === t.id)?.category === 'catholic'
-				: AVAILABLE_TRANSLATIONS.find((a) => a.id === t.id)?.category !== 'catholic'
+				? isCatholicTranslation(t.id)
+				: !isCatholicTranslation(t.id)
 		)
 	);
 
 	$effect(() => {
-		const currentMeta = AVAILABLE_TRANSLATIONS.find((a) => a.id === data.translation);
-		const currentIsCatholic = currentMeta?.category === 'catholic';
+		const currentIsCatholic = isCatholicTranslation(data.translation);
 		if (isCatholic === currentIsCatholic) {
-			setLastTranslation(isCatholic ? 'catholic' : 'protestant', data.translation);
+			setTranslation(data.translation);
 			return;
 		}
-		if (filteredTranslations.length > 0) {
-			const targetMode = isCatholic ? 'catholic' : 'protestant';
-			setLastTranslation(currentIsCatholic ? 'catholic' : 'protestant', data.translation);
-			const last = getLastTranslation(targetMode);
-			const targetTranslation = filteredTranslations.find(t => t.id === last)?.id
-				?? filteredTranslations[0].id;
+		const installedIds = parentData.installedTranslations.map(t => t.id);
+		const target = resolveTranslation(installedIds);
+		if (target) {
 			const isDeutero = currentBook?.testament === 'deuterocanonical';
 			if (!isCatholic && isDeutero) {
-				goto(`/bible/${targetTranslation}/genesis/1`);
+				goto(`/bible/${target}/genesis/1`);
 			} else {
-				goto(`/bible/${targetTranslation}/${data.bookSlug}/${data.chapter}`);
+				goto(`/bible/${target}/${data.bookSlug}/${data.chapter}`);
 			}
 		}
 	});
