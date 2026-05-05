@@ -32,6 +32,33 @@
 		return sorted;
 	});
 
+	const notInstalled = $derived(
+		grouped().flatMap(([, translations]) => translations).filter((t) => !t.installed)
+	);
+	let downloadingAll = $state(false);
+
+	async function downloadAll() {
+		downloadingAll = true;
+		errorMsg = null;
+		for (const t of notInstalled) {
+			downloading = t.id;
+			try {
+				const res = await fetch(`/api/translations/${t.id}`, { method: 'POST' });
+				if (!res.ok) {
+					const body = await res.json();
+					errorMsg = body.error ?? `Failed to download ${t.abbreviation}`;
+					break;
+				}
+				await invalidateAll();
+			} catch {
+				errorMsg = `Network error downloading ${t.abbreviation}`;
+				break;
+			}
+		}
+		downloading = null;
+		downloadingAll = false;
+	}
+
 	async function download(id: string) {
 		downloading = id;
 		errorMsg = null;
@@ -72,6 +99,18 @@
 <div class="content">
 	<h1 class="page-title">{mode === 'catholic' ? 'Catholic' : 'Protestant'} Translations</h1>
 	<p class="page-subtitle">Download Bible translations to read offline. Switch mode in the nav bar to see {mode === 'catholic' ? 'Protestant' : 'Catholic'} translations.</p>
+
+	{#if notInstalled.length > 0}
+		<div style="margin-bottom: 20px;">
+			<button
+				class="btn btn-primary"
+				onclick={downloadAll}
+				disabled={downloadingAll || downloading !== null}
+			>
+				{downloadingAll ? 'Downloading...' : 'Download All'}
+			</button>
+		</div>
+	{/if}
 
 	{#if errorMsg}
 		<div class="card" style="border-color: var(--color-danger); margin-bottom: 16px; color: var(--color-danger);">
