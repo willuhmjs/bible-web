@@ -98,8 +98,6 @@
 
 <div class="content">
 	<h1 class="page-title">{mode === 'catholic' ? 'Catholic' : 'Protestant'} Translations</h1>
-	<p class="page-subtitle">Download Bible translations to read offline. Switch mode in the nav bar to see {mode === 'catholic' ? 'Protestant' : 'Catholic'} translations.</p>
-
 	{#if notInstalled.length > 0}
 		<div style="margin-bottom: 20px;">
 			<button
