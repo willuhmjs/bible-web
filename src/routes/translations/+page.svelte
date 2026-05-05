@@ -7,11 +7,12 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let downloading = $state<string | null>(data.activeDownloads[0] ?? null);
+	let clientDownloading = $state<Set<string>>(new Set());
 	let removing = $state<string | null>(null);
 	let errorMsg = $state<string | null>(null);
 
-	const isDownloading = $derived(downloading !== null || data.activeDownloads.length > 0);
+	const busyIds = $derived(new Set([...clientDownloading, ...data.activeDownloads]));
+	const isBusy = $derived(busyIds.size > 0);
 
 	const mode = $derived(getMode());
 
@@ -35,66 +36,61 @@
 		return sorted;
 	});
 
-	let pollInterval: ReturnType<typeof setInterval> | null = null;
+	const notInstalled = $derived(
+		grouped().flatMap(([, translations]) => translations).filter((t) => !t.installed)
+	);
+
+	let pollTimer: ReturnType<typeof setInterval> | null = null;
 
 	$effect(() => {
-		if (data.activeDownloads.length > 0 && !downloadingAll) {
-			downloading = data.activeDownloads[0];
-			if (!pollInterval) {
-				pollInterval = setInterval(() => invalidateAll(), 2000);
-			}
-		} else if (data.activeDownloads.length === 0 && pollInterval) {
-			clearInterval(pollInterval);
-			pollInterval = null;
-			if (!downloadingAll) downloading = null;
+		if (data.activeDownloads.length > 0 && !pollTimer) {
+			pollTimer = setInterval(() => invalidateAll(), 2000);
+		}
+		if (data.activeDownloads.length === 0 && pollTimer) {
+			clearInterval(pollTimer);
+			pollTimer = null;
 		}
 	});
 
 	onDestroy(() => {
-		if (pollInterval) clearInterval(pollInterval);
+		if (pollTimer) clearInterval(pollTimer);
 	});
 
-	const notInstalled = $derived(
-		grouped().flatMap(([, translations]) => translations).filter((t) => !t.installed)
-	);
-	let downloadingAll = $state(false);
-
-	async function downloadAll() {
-		downloadingAll = true;
-		errorMsg = null;
-		for (const t of notInstalled) {
-			downloading = t.id;
-			try {
-				const res = await fetch(`/api/translations/${t.id}`, { method: 'POST' });
-				if (!res.ok) {
-					const body = await res.json();
-					errorMsg = body.error ?? `Failed to download ${t.abbreviation}`;
-					break;
-				}
-				await invalidateAll();
-			} catch {
-				errorMsg = `Network error downloading ${t.abbreviation}`;
-				break;
-			}
-		}
-		downloading = null;
-		downloadingAll = false;
-	}
-
-	async function download(id: string) {
-		downloading = id;
-		errorMsg = null;
+	async function downloadOne(id: string) {
+		clientDownloading = new Set([...clientDownloading, id]);
 		try {
 			const res = await fetch(`/api/translations/${id}`, { method: 'POST' });
 			if (!res.ok) {
 				const body = await res.json();
-				errorMsg = body.error ?? 'Download failed';
+				throw new Error(body.error ?? 'Download failed');
 			}
+		} finally {
+			const next = new Set(clientDownloading);
+			next.delete(id);
+			clientDownloading = next;
 			await invalidateAll();
-		} catch {
-			errorMsg = 'Network error';
 		}
-		downloading = null;
+	}
+
+	async function downloadAll() {
+		errorMsg = null;
+		for (const t of notInstalled) {
+			try {
+				await downloadOne(t.id);
+			} catch (e: any) {
+				errorMsg = e.message ?? `Failed to download ${t.abbreviation}`;
+				break;
+			}
+		}
+	}
+
+	async function download(id: string) {
+		errorMsg = null;
+		try {
+			await downloadOne(id);
+		} catch (e: any) {
+			errorMsg = e.message ?? 'Download failed';
+		}
 	}
 
 	async function remove(id: string) {
@@ -125,9 +121,9 @@
 			<button
 				class="btn btn-primary"
 				onclick={downloadAll}
-				disabled={isDownloading}
+				disabled={isBusy}
 			>
-				{isDownloading ? 'Downloading...' : 'Download All'}
+				{isBusy ? 'Downloading...' : 'Download All'}
 			</button>
 		</div>
 	{/if}
@@ -166,9 +162,9 @@
 									class="btn btn-primary btn-sm"
 									style="min-width: 100px;"
 									onclick={() => download(t.id)}
-									disabled={isDownloading}
+									disabled={isBusy}
 								>
-									{#if downloading === t.id || data.activeDownloads.includes(t.id)}
+									{#if busyIds.has(t.id)}
 										<span class="spinner spinner-sm"></span>
 									{:else}
 										Download
