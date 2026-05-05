@@ -2,16 +2,23 @@
 	import '../app.css';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { browser } from '$app/environment';
 	import { getMode, toggleMode, getTranslation, setTranslation, resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
 
 	let { children, data } = $props();
 
-	let theme = $state('light');
+	let theme = $state(
+		browser
+			? localStorage.getItem('bible-theme') ??
+			  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+			: 'light'
+	);
 	let showTranslations = $state(false);
 
 	function toggleTheme() {
 		theme = theme === 'light' ? 'dark' : 'light';
 		document.documentElement.setAttribute('data-theme', theme);
+		localStorage.setItem('bible-theme', theme);
 	}
 
 	const isActive = (path: string) => {
