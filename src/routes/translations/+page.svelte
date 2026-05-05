@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
+	import { onDestroy } from 'svelte';
 	import type { PageData } from './$types.js';
 	import type { Translation } from '$lib/types.js';
 	import { getMode } from '$lib/mode.svelte.js';
 
 	let { data }: { data: PageData } = $props();
 
-	let downloading = $state<string | null>(null);
+	let downloading = $state<string | null>(data.activeDownloads[0] ?? null);
 	let removing = $state<string | null>(null);
 	let errorMsg = $state<string | null>(null);
+
+	const isDownloading = $derived(downloading !== null || data.activeDownloads.length > 0);
 
 	const mode = $derived(getMode());
 
@@ -30,6 +33,25 @@
 			return a[0].localeCompare(b[0]);
 		});
 		return sorted;
+	});
+
+	let pollInterval: ReturnType<typeof setInterval> | null = null;
+
+	$effect(() => {
+		if (data.activeDownloads.length > 0 && !downloadingAll) {
+			downloading = data.activeDownloads[0];
+			if (!pollInterval) {
+				pollInterval = setInterval(() => invalidateAll(), 2000);
+			}
+		} else if (data.activeDownloads.length === 0 && pollInterval) {
+			clearInterval(pollInterval);
+			pollInterval = null;
+			if (!downloadingAll) downloading = null;
+		}
+	});
+
+	onDestroy(() => {
+		if (pollInterval) clearInterval(pollInterval);
 	});
 
 	const notInstalled = $derived(
@@ -103,9 +125,9 @@
 			<button
 				class="btn btn-primary"
 				onclick={downloadAll}
-				disabled={downloadingAll || downloading !== null}
+				disabled={isDownloading}
 			>
-				{downloadingAll ? 'Downloading...' : 'Download All'}
+				{isDownloading ? 'Downloading...' : 'Download All'}
 			</button>
 		</div>
 	{/if}
@@ -144,9 +166,9 @@
 									class="btn btn-primary btn-sm"
 									style="min-width: 100px;"
 									onclick={() => download(t.id)}
-									disabled={downloading !== null}
+									disabled={isDownloading}
 								>
-									{#if downloading === t.id}
+									{#if downloading === t.id || data.activeDownloads.includes(t.id)}
 										<span class="spinner spinner-sm"></span>
 									{:else}
 										Download

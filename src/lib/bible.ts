@@ -9,6 +9,12 @@ const DATA_DIR = path.resolve('data/bibles');
 const GITHUB_REPO = 'willuhmjs/bible-web';
 const GITHUB_BRANCH = 'main';
 
+const activeDownloads = new Set<string>();
+
+export function getActiveDownloads(): string[] {
+	return [...activeDownloads];
+}
+
 function translationDir(translationId: string): string {
 	return path.join(DATA_DIR, translationId);
 }
@@ -59,17 +65,22 @@ export async function downloadTranslation(translationId: string): Promise<void> 
 	const meta = getTranslationMeta(translationId);
 	if (!meta) throw new Error(`Unknown translation: ${translationId}`);
 
-	const dir = translationDir(translationId);
-	await mkdir(dir, { recursive: true });
+	activeDownloads.add(translationId);
+	try {
+		const dir = translationDir(translationId);
+		await mkdir(dir, { recursive: true });
 
-	const baseUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/bibles/${translationId}`;
+		const baseUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/bibles/${translationId}`;
 
-	for (const book of BOOKS) {
-		const url = `${baseUrl}/${book.slug}.json`;
-		const res = await fetch(url);
-		if (!res.ok) continue;
-		const data = await res.text();
-		await writeFile(path.join(dir, `${book.slug}.json`), data);
+		for (const book of BOOKS) {
+			const url = `${baseUrl}/${book.slug}.json`;
+			const res = await fetch(url);
+			if (!res.ok) continue;
+			const data = await res.text();
+			await writeFile(path.join(dir, `${book.slug}.json`), data);
+		}
+	} finally {
+		activeDownloads.delete(translationId);
 	}
 }
 
