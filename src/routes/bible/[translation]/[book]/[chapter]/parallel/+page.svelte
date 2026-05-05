@@ -13,13 +13,14 @@
 	<title>{data.bookName} {data.chapter} - Parallel - Bible</title>
 </svelte:head>
 
-<div style="max-width: 1100px; margin: 0 auto; padding: 20px 20px 0;">
-	<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+<div class="parallel-container" style="padding-bottom: 0;">
+	<div style="grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; margin-bottom: 0; flex-wrap: wrap;">
 		<a href={data.backLink} class="btn btn-secondary btn-sm">&larr; Back</a>
 		<span style="font-size: 18px; font-weight: 600;">{data.bookName} {data.chapter}</span>
 		{#if data.availableTranslations.length > 2}
 			<select
 				class="search-select"
+				style="margin-top: 0;"
 				value={data.secondTranslation}
 				onchange={(e) => switchCompare((e.target as HTMLSelectElement).value)}
 			>

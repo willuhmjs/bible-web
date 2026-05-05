@@ -4,6 +4,7 @@
 	import { browser } from '$app/environment';
 	import { BOOKS } from '$lib/books.js';
 	import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
+	import { getMode, getLastTranslation, setLastTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
@@ -14,22 +15,20 @@
 	let pickerBook = $state<string | null>(null);
 
 	const currentBook = $derived(BOOKS.find((b) => b.slug === data.bookSlug));
-	const isCatholic = $derived(
-		AVAILABLE_TRANSLATIONS.find((t) => t.id === data.translation)?.category === 'catholic'
+	const isCatholic = $derived(getMode() === 'catholic');
+
+	let selectedTestament = $state<'old' | 'new'>(
+		BOOKS.find((b) => b.slug === data.bookSlug)?.testament === 'new' ? 'new' : 'old'
 	);
 
-	let selectedTestament = $state<'old' | 'new' | 'deuterocanonical'>(
-		BOOKS.find((b) => b.slug === data.bookSlug)?.testament === 'deuterocanonical' ? 'deuterocanonical' :
-		BOOKS.find((b) => b.slug === data.bookSlug)?.testament ?? 'old'
+	const oldTestament = $derived(
+		isCatholic
+			? BOOKS.filter((b) => b.testament === 'old' || b.testament === 'deuterocanonical')
+			: BOOKS.filter((b) => b.testament === 'old')
 	);
-
-	const oldTestament = BOOKS.filter((b) => b.testament === 'old');
 	const newTestament = BOOKS.filter((b) => b.testament === 'new');
-	const deuterocanonical = BOOKS.filter((b) => b.testament === 'deuterocanonical');
 	const displayedBooks = $derived(
-		selectedTestament === 'old' ? oldTestament :
-		selectedTestament === 'new' ? newTestament :
-		deuterocanonical
+		selectedTestament === 'old' ? oldTestament : newTestament
 	);
 	const pickerBookInfo = $derived(
 		pickerBook ? BOOKS.find((b) => b.slug === pickerBook) : null
@@ -47,6 +46,36 @@
 	}
 
 	const parentData = $derived(page.data as { installedTranslations: Array<{ id: string; abbreviation: string; name: string }> });
+
+	const filteredTranslations = $derived(
+		parentData.installedTranslations.filter((t) =>
+			isCatholic
+				? AVAILABLE_TRANSLATIONS.find((a) => a.id === t.id)?.category === 'catholic'
+				: AVAILABLE_TRANSLATIONS.find((a) => a.id === t.id)?.category !== 'catholic'
+		)
+	);
+
+	$effect(() => {
+		const currentMeta = AVAILABLE_TRANSLATIONS.find((a) => a.id === data.translation);
+		const currentIsCatholic = currentMeta?.category === 'catholic';
+		if (isCatholic === currentIsCatholic) {
+			setLastTranslation(isCatholic ? 'catholic' : 'protestant', data.translation);
+			return;
+		}
+		if (filteredTranslations.length > 0) {
+			const targetMode = isCatholic ? 'catholic' : 'protestant';
+			setLastTranslation(currentIsCatholic ? 'catholic' : 'protestant', data.translation);
+			const last = getLastTranslation(targetMode);
+			const targetTranslation = filteredTranslations.find(t => t.id === last)?.id
+				?? filteredTranslations[0].id;
+			const isDeutero = currentBook?.testament === 'deuterocanonical';
+			if (!isCatholic && isDeutero) {
+				goto(`/bible/${targetTranslation}/genesis/1`);
+			} else {
+				goto(`/bible/${targetTranslation}/${data.bookSlug}/${data.chapter}`);
+			}
+		}
+	});
 
 	// ── Verse selection ──
 	let selectedVerses = $state<Set<string>>(new Set());
@@ -180,7 +209,7 @@
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div style="position: fixed; inset: 0; z-index: 199;" onclick={() => showTranslations = false}></div>
 					<div class="translation-dropdown">
-						{#each parentData.installedTranslations as t}
+						{#each filteredTranslations as t}
 							<button
 								class="translation-dropdown-item"
 								class:active={t.id === data.translation}
@@ -294,11 +323,6 @@
 					<button class="picker-tab" class:active={selectedTestament === 'new'} onclick={() => selectedTestament = 'new'}>
 						New Testament
 					</button>
-					{#if isCatholic}
-						<button class="picker-tab" class:active={selectedTestament === 'deuterocanonical'} onclick={() => selectedTestament = 'deuterocanonical'}>
-							Deuterocanonical
-						</button>
-					{/if}
 				</div>
 				<div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">
 					{#each displayedBooks as book}
@@ -307,6 +331,16 @@
 							class:active={book.slug === data.bookSlug}
 							onclick={() => pickerBook = book.slug}
 						>
+							{#if book.testament === 'deuterocanonical'}
+								<svg class="deutero-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+									<line x1="4" y1="20" x2="20" y2="4" stroke="#C0A030" />
+									<circle cx="6.5" cy="2.5" r="1.5" fill="#C0A030" />
+									<path d="M3.5 21.5 L5 20 L4 19" stroke="#C0A030" fill="none" />
+									<line x1="20" y1="20" x2="4" y2="4" stroke="#A0A0A0" />
+									<circle cx="17.5" cy="2.5" r="1.5" fill="#A0A0A0" />
+									<path d="M20.5 21.5 L19 20 L20 19" stroke="#A0A0A0" fill="none" />
+								</svg>
+							{/if}
 							{book.name}
 						</button>
 					{/each}

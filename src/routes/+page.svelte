@@ -1,20 +1,24 @@
 <script lang="ts">
 	import { BOOKS } from '$lib/books.js';
 	import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
+	import { getMode, getLastTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
 
-	let selectedTestament = $state<'old' | 'new' | 'deuterocanonical'>('old');
+	let selectedTestament = $state<'old' | 'new'>('old');
 
-	const oldTestament = BOOKS.filter((b) => b.testament === 'old');
+	const isCatholic = $derived(getMode() === 'catholic');
+
+	const oldTestament = $derived(
+		isCatholic
+			? BOOKS.filter((b) => b.testament === 'old' || b.testament === 'deuterocanonical')
+			: BOOKS.filter((b) => b.testament === 'old')
+	);
 	const newTestament = BOOKS.filter((b) => b.testament === 'new');
-	const deuterocanonical = BOOKS.filter((b) => b.testament === 'deuterocanonical');
 
 	const displayedBooks = $derived(
-		selectedTestament === 'old' ? oldTestament :
-		selectedTestament === 'new' ? newTestament :
-		deuterocanonical
+		selectedTestament === 'old' ? oldTestament : newTestament
 	);
 
 	let selectedBook = $state<string | null>(null);
@@ -23,11 +27,20 @@
 		selectedBook ? BOOKS.find((b) => b.slug === selectedBook) : null
 	);
 
-	const translation = $derived(data.defaultTranslation ?? 'kjv');
-
-	const isCatholic = $derived(
-		AVAILABLE_TRANSLATIONS.find((t) => t.id === translation)?.category === 'catholic'
-	);
+	const translation = $derived.by(() => {
+		const targetMode = isCatholic ? 'catholic' : 'protestant';
+		const last = getLastTranslation(targetMode);
+		const installed = (data as any).installedTranslations ?? [];
+		const modeTranslations = installed.filter((t: { id: string }) =>
+			isCatholic
+				? AVAILABLE_TRANSLATIONS.find((a) => a.id === t.id)?.category === 'catholic'
+				: AVAILABLE_TRANSLATIONS.find((a) => a.id === t.id)?.category !== 'catholic'
+		);
+		if (last && modeTranslations.some((t: { id: string }) => t.id === last)) {
+			return last;
+		}
+		return modeTranslations[0]?.id ?? data.defaultTranslation ?? 'kjv';
+	});
 
 	const votdVerses = [
 		{ text: 'For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.', ref: 'John 3:16' },
@@ -63,24 +76,29 @@
 		<div class="mb-6">
 			<h2 class="section-title">Select a Book</h2>
 
-			<div class="picker-tabs" style="max-width: {isCatholic ? '460px' : '260px'};">
+			<div class="picker-tabs" style="max-width: 260px;">
 				<button class="picker-tab" class:active={selectedTestament === 'old'} onclick={() => { selectedTestament = 'old'; selectedBook = null; }}>
 					Old Testament
 				</button>
 				<button class="picker-tab" class:active={selectedTestament === 'new'} onclick={() => { selectedTestament = 'new'; selectedBook = null; }}>
 					New Testament
 				</button>
-				{#if isCatholic}
-					<button class="picker-tab" class:active={selectedTestament === 'deuterocanonical'} onclick={() => { selectedTestament = 'deuterocanonical'; selectedBook = null; }}>
-						Deuterocanonical
-					</button>
-				{/if}
 			</div>
 
 			{#if !selectedBook}
 				<div class="grid grid-3" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">
 					{#each displayedBooks as book}
 						<button class="book-grid-item" onclick={() => selectedBook = book.slug}>
+							{#if book.testament === 'deuterocanonical'}
+								<svg class="deutero-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+									<line x1="4" y1="20" x2="20" y2="4" stroke="#C0A030" />
+									<circle cx="6.5" cy="2.5" r="1.5" fill="#C0A030" />
+									<path d="M3.5 21.5 L5 20 L4 19" stroke="#C0A030" fill="none" />
+									<line x1="20" y1="20" x2="4" y2="4" stroke="#A0A0A0" />
+									<circle cx="17.5" cy="2.5" r="1.5" fill="#A0A0A0" />
+									<path d="M20.5 21.5 L19 20 L20 19" stroke="#A0A0A0" fill="none" />
+								</svg>
+							{/if}
 							{book.name}
 						</button>
 					{/each}

@@ -116,6 +116,14 @@ export const AVAILABLE_TRANSLATIONS: TranslationMeta[] = [
 		description: 'A free, open-licensed modern English translation.'
 	},
 	{
+		id: 'webc',
+		name: 'World English Bible, Catholic Edition',
+		abbreviation: 'WEBC',
+		language: 'English',
+		description: 'A modern, easy-to-read Catholic edition with Deuterocanonical books. Public domain.',
+		category: 'catholic'
+	},
+	{
 		id: 'cpdv',
 		name: 'Catholic Public Domain Version',
 		abbreviation: 'CPDV',

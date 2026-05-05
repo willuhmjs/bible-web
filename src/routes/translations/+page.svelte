@@ -2,6 +2,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import type { PageData } from './$types.js';
 	import type { Translation } from '$lib/types.js';
+	import { getMode } from '$lib/mode.svelte.js';
 
 	let { data }: { data: PageData } = $props();
 
@@ -9,9 +10,16 @@
 	let removing = $state<string | null>(null);
 	let errorMsg = $state<string | null>(null);
 
+	const mode = $derived(getMode());
+
 	const grouped = $derived(() => {
+		const filtered = data.translations.filter((t) =>
+			mode === 'catholic'
+				? ('category' in t && t.category === 'catholic')
+				: !('category' in t && t.category === 'catholic')
+		);
 		const groups = new Map<string, Translation[]>();
-		for (const t of data.translations) {
+		for (const t of filtered) {
 			const lang = t.language;
 			if (!groups.has(lang)) groups.set(lang, []);
 			groups.get(lang)!.push(t);
@@ -62,8 +70,8 @@
 </svelte:head>
 
 <div class="content">
-	<h1 class="page-title">Translations</h1>
-	<p class="page-subtitle">Download Bible translations to read offline. All data is stored locally on the server.</p>
+	<h1 class="page-title">{mode === 'catholic' ? 'Catholic' : 'Protestant'} Translations</h1>
+	<p class="page-subtitle">Download Bible translations to read offline. Switch mode in the nav bar to see {mode === 'catholic' ? 'Protestant' : 'Catholic'} translations.</p>
 
 	{#if errorMsg}
 		<div class="card" style="border-color: var(--color-danger); margin-bottom: 16px; color: var(--color-danger);">
@@ -81,9 +89,6 @@
 							<h3>
 								{t.name}
 								<span class="abbreviation">{t.abbreviation}</span>
-								{#if 'category' in t && t.category === 'catholic'}
-									<span class="catholic-badge">Roman Catholic</span>
-								{/if}
 							</h3>
 							<p>{t.description}</p>
 						</div>

@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
+	import { getMode, getLastTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
@@ -11,9 +12,27 @@
 	let query = $state(initialQuery);
 	let translation = $state(initialTranslation);
 
+	const isCatholic = $derived(getMode() === 'catholic');
+
 	const installedTranslations = $derived(
-		AVAILABLE_TRANSLATIONS.filter((t) => data.installedIds.includes(t.id))
+		AVAILABLE_TRANSLATIONS.filter((t) =>
+			data.installedIds.includes(t.id) && (
+				isCatholic
+					? t.category === 'catholic'
+					: t.category !== 'catholic'
+			)
+		)
 	);
+
+	$effect(() => {
+		if (!installedTranslations.some((t) => t.id === translation)) {
+			const targetMode = isCatholic ? 'catholic' : 'protestant';
+			const last = getLastTranslation(targetMode);
+			translation = installedTranslations.find((t) => t.id === last)?.id
+				?? installedTranslations[0]?.id
+				?? data.translation;
+		}
+	});
 
 	function doSearch(e?: Event) {
 		e?.preventDefault();

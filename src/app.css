@@ -153,6 +153,72 @@ button {
 	color: var(--color-text);
 }
 
+/* Mode slider */
+.mode-slider {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 52px;
+	height: 26px;
+	padding: 0 6px;
+	border-radius: var(--radius-full);
+	background: var(--color-bg-tertiary);
+	cursor: pointer;
+	transition: background 0.2s ease;
+}
+
+.mode-slider.catholic {
+	background: rgba(139, 105, 20, 0.15);
+}
+
+.mode-slider-thumb {
+	position: absolute;
+	left: 2px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--color-surface);
+	box-shadow: var(--shadow-sm);
+	transition: left 0.2s ease;
+}
+
+.mode-slider.catholic .mode-slider-thumb {
+	left: 28px;
+}
+
+.mode-slider-icon {
+	position: relative;
+	z-index: 1;
+	flex-shrink: 0;
+}
+
+.mode-slider .book-icon {
+	color: var(--color-text-secondary);
+	transition: color 0.2s ease;
+}
+
+.mode-slider .keys-icon {
+	color: var(--color-text-muted);
+	transition: color 0.2s ease;
+}
+
+.mode-slider.catholic .book-icon {
+	color: var(--color-text-muted);
+}
+
+.mode-slider.catholic .keys-icon {
+	color: #8b6914;
+}
+
+/* Deuterocanonical book icon */
+.deutero-icon {
+	color: var(--color-text-muted);
+	margin-right: 2px;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+
 /* Content */
 .content {
 	max-width: var(--max-width);
