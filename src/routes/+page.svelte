@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { BOOKS } from '$lib/books.js';
 	import { getMode, resolveTranslation } from '$lib/mode.svelte.js';
+	import { VOTD_VERSES, getTodayIndex } from '$lib/votd.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
@@ -31,17 +32,22 @@
 	);
 	const translation = $derived(resolveTranslation(installedIds));
 
-	const votdVerses = [
-		{ text: 'For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.', ref: 'John 3:16' },
-		{ text: 'The Lord is my shepherd; I shall not want.', ref: 'Psalm 23:1' },
-		{ text: 'Trust in the Lord with all thine heart; and lean not unto thine own understanding.', ref: 'Proverbs 3:5' },
-		{ text: 'I can do all things through Christ which strengtheneth me.', ref: 'Philippians 4:13' },
-		{ text: 'And we know that all things work together for good to them that love God.', ref: 'Romans 8:28' },
-		{ text: 'Be strong and of a good courage; be not afraid, neither be thou dismayed: for the Lord thy God is with thee whithersoever thou goest.', ref: 'Joshua 1:9' },
-		{ text: 'The Lord is my light and my salvation; whom shall I fear?', ref: 'Psalm 27:1' }
-	];
+	const todayIndex = getTodayIndex();
+	const todayRef = VOTD_VERSES[todayIndex].ref;
 
-	const todayVerse = votdVerses[new Date().getDay()];
+	let votdText = $state<string | null>(null);
+	let votdLoaded = $state(false);
+
+	$effect(() => {
+		if (!translation) return;
+		votdLoaded = false;
+		fetch(`/api/votd?translation=${encodeURIComponent(translation)}&day=${todayIndex}`)
+			.then((r) => r.json())
+			.then((d) => {
+				votdText = d.text;
+				votdLoaded = true;
+			});
+	});
 </script>
 
 <div class="content">
@@ -58,8 +64,14 @@
 		</div>
 	{:else}
 		<div class="votd">
-			<blockquote>&ldquo;{todayVerse.text}&rdquo;</blockquote>
-			<cite>{todayVerse.ref}</cite>
+			{#if votdText}
+				<blockquote class:fade-in={votdLoaded}>&ldquo;{votdText}&rdquo;</blockquote>
+			{:else if votdLoaded}
+				<blockquote>&ldquo;...&rdquo;</blockquote>
+			{:else}
+				<blockquote class="loading">&nbsp;</blockquote>
+			{/if}
+			<cite>{todayRef} <span class="votd-translation">({translation.toUpperCase()})</span></cite>
 		</div>
 
 		<div class="mb-6">
