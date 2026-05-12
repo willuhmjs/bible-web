@@ -93,18 +93,18 @@
 							{#if book.testament === 'deuterocanonical'}
 								<svg class="deutero-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
 									<g stroke="#C0A030" stroke-width="1.8">
-										<ellipse cx="5.5" cy="4.5" rx="3" ry="3.5" fill="none" />
-										<line x1="7.5" y1="7.2" x2="19" y2="18.7" />
-										<line x1="14" y1="15" x2="16" y2="13" />
-										<line x1="16.5" y1="17.5" x2="18.5" y2="15.5" />
-										<line x1="19" y1="18.7" x2="20.5" y2="17.2" />
+										<ellipse cx="5.5" cy="19.5" rx="3" ry="3.5" fill="none" />
+										<line x1="7.5" y1="16.8" x2="19" y2="5.3" />
+										<line x1="10" y1="9" x2="8" y2="11" />
+										<line x1="7.5" y1="6.5" x2="5.5" y2="8.5" />
+										<line x1="19" y1="5.3" x2="20.5" y2="6.8" />
 									</g>
 									<g stroke="#A0A0A0" stroke-width="1.8">
-										<ellipse cx="18.5" cy="4.5" rx="3" ry="3.5" fill="none" />
-										<line x1="16.5" y1="7.2" x2="5" y2="18.7" />
-										<line x1="10" y1="15" x2="8" y2="13" />
-										<line x1="7.5" y1="17.5" x2="5.5" y2="15.5" />
-										<line x1="5" y1="18.7" x2="3.5" y2="17.2" />
+										<ellipse cx="18.5" cy="19.5" rx="3" ry="3.5" fill="none" />
+										<line x1="16.5" y1="16.8" x2="5" y2="5.3" />
+										<line x1="14" y1="9" x2="16" y2="11" />
+										<line x1="16.5" y1="6.5" x2="18.5" y2="8.5" />
+										<line x1="5" y1="5.3" x2="3.5" y2="6.8" />
 									</g>
 								</svg>
 							{/if}
