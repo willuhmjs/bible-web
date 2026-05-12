@@ -206,6 +206,29 @@
 		marks = new Map(marks);
 	}
 
+	async function removeHighlights() {
+		if (!session?.user?.id || savingMark) return;
+		savingMark = true;
+
+		const sorted = [...selectedVerses].map(Number).sort((a, b) => a - b);
+		for (const v of sorted) {
+			if (!marks.has(v)) continue;
+			await fetch('/api/marks', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ book: data.bookSlug, chapter: data.chapter, verse: v })
+			});
+			marks.delete(v);
+		}
+		marks = new Map(marks);
+		savingMark = false;
+		clearSelection();
+	}
+
+	const selectionHasMarks = $derived(() => {
+		return [...selectedVerses].some(v => marks.has(parseInt(v)));
+	});
+
 	// ── Reader settings ──
 	let showSettings = $state(false);
 	let fontSize = $state(20);
@@ -394,6 +417,10 @@
 			</div>
 			<span class="divider"></span>
 			<button onclick={() => startComment([...selectedVerses].map(Number).sort((a, b) => a - b)[0])} disabled={savingMark}>Comment</button>
+			{#if selectionHasMarks()}
+				<span class="divider"></span>
+				<button onclick={removeHighlights} disabled={savingMark}>Remove</button>
+			{/if}
 		{/if}
 	</div>
 {/if}
