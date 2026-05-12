@@ -19,5 +19,11 @@ if (process.env.OIDC_ISSUER_URL && process.env.OIDC_CLIENT_ID && process.env.OID
 export const { handle, signIn, signOut } = SvelteKitAuth({
 	adapter: PrismaAdapter(prisma),
 	providers,
-	trustHost: true
+	trustHost: true,
+	callbacks: {
+		session({ session, user }) {
+			session.user.id = user.id;
+			return session;
+		}
+	}
 });
