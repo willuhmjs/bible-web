@@ -107,13 +107,21 @@
 				<line x1="12" y1="3" x2="12" y2="20" />
 			</svg>
 			<div class="mode-slider-thumb"></div>
-			<svg class="mode-slider-icon keys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-				<line x1="4" y1="20" x2="20" y2="4" stroke="#C0A030" />
-				<circle cx="6.5" cy="2.5" r="1.5" fill="#C0A030" />
-				<path d="M3.5 21.5 L5 20 L4 19" stroke="#C0A030" fill="none" />
-				<line x1="20" y1="20" x2="4" y2="4" stroke="#A0A0A0" />
-				<circle cx="17.5" cy="2.5" r="1.5" fill="#A0A0A0" />
-				<path d="M20.5 21.5 L19 20 L20 19" stroke="#A0A0A0" fill="none" />
+			<svg class="mode-slider-icon keys-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+				<g stroke="#C0A030" stroke-width="1.8">
+					<ellipse cx="5.5" cy="4.5" rx="3" ry="3.5" fill="none" />
+					<line x1="7.5" y1="7.2" x2="19" y2="18.7" />
+					<line x1="14" y1="15" x2="16" y2="13" />
+					<line x1="16.5" y1="17.5" x2="18.5" y2="15.5" />
+					<line x1="19" y1="18.7" x2="20.5" y2="17.2" />
+				</g>
+				<g stroke="#A0A0A0" stroke-width="1.8">
+					<ellipse cx="18.5" cy="4.5" rx="3" ry="3.5" fill="none" />
+					<line x1="16.5" y1="7.2" x2="5" y2="18.7" />
+					<line x1="10" y1="15" x2="8" y2="13" />
+					<line x1="7.5" y1="17.5" x2="5.5" y2="15.5" />
+					<line x1="5" y1="18.7" x2="3.5" y2="17.2" />
+				</g>
 			</svg>
 		</div>
 		<button class="theme-toggle" onclick={toggleTheme} aria-label="Toggle theme">
