@@ -2,12 +2,14 @@ import { getInstalledTranslations } from '$lib/bible.js';
 import { AVAILABLE_TRANSLATIONS } from '$lib/translations.js';
 import type { LayoutServerLoad } from './$types.js';
 
-export const load: LayoutServerLoad = async () => {
+export const load: LayoutServerLoad = async (event) => {
 	const installed = await getInstalledTranslations();
 	const translations = AVAILABLE_TRANSLATIONS.filter((t) => installed.includes(t.id));
+	const session = await event.locals.auth();
 
 	return {
 		installedTranslations: translations,
-		defaultTranslation: translations[0]?.id ?? null
+		defaultTranslation: translations[0]?.id ?? null,
+		session
 	};
 };

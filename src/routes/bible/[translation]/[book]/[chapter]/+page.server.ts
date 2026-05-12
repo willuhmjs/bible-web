@@ -1,9 +1,10 @@
 import { getChapter, isTranslationInstalled } from '$lib/bible.js';
 import { getBookBySlug, getNextBook, getPrevBook } from '$lib/books.js';
 import { error } from '@sveltejs/kit';
+import prisma from '$lib/server/db.js';
 import type { PageServerLoad } from './$types.js';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
 	const { translation, book, chapter } = params;
 	const chapterNum = parseInt(chapter, 10);
 
@@ -46,6 +47,17 @@ export const load: PageServerLoad = async ({ params }) => {
 		}
 	}
 
+	const session = await locals.auth();
+	let marks: Array<{ verse: number; color: string; comment: string | null }> = [];
+
+	if (session?.user?.id) {
+		marks = await prisma.mark.findMany({
+			where: { userId: session.user.id, book, chapter: chapterNum },
+			select: { verse: true, color: true, comment: true },
+			orderBy: { verse: 'asc' }
+		});
+	}
+
 	return {
 		verses: result.verses,
 		bookName: result.bookName,
@@ -54,6 +66,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		totalChapters: bookInfo.chapters,
 		translation,
 		prevLink,
-		nextLink
+		nextLink,
+		marks
 	};
 };

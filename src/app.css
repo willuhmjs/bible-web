@@ -1046,6 +1046,160 @@ button {
 	border: 0;
 }
 
+/* Highlighted verses */
+.verse-wrapper.highlighted {
+	background: color-mix(in srgb, var(--highlight-color, #FFD700) 25%, transparent);
+	border-radius: 3px;
+	padding: 1px 2px;
+}
+
+.verse-wrapper.highlighted.selected {
+	background: color-mix(in srgb, var(--highlight-color, #FFD700) 40%, transparent);
+}
+
+/* Comment indicator */
+.comment-indicator {
+	display: inline;
+	font-size: 0.6em;
+	vertical-align: super;
+	margin-left: 2px;
+	cursor: pointer;
+	opacity: 0.6;
+	transition: opacity 0.15s ease;
+	line-height: 1;
+	padding: 0;
+}
+
+.comment-indicator:hover {
+	opacity: 1;
+}
+
+/* Comment input area */
+.comment-input-area {
+	display: block;
+	margin: 8px 0 16px;
+	padding: 12px;
+	background: var(--color-bg-secondary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+}
+
+.comment-textarea {
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 14px;
+	font-family: var(--font-sans);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface);
+	color: var(--color-text);
+	resize: vertical;
+	outline: none;
+}
+
+.comment-textarea:focus {
+	border-color: var(--color-accent);
+}
+
+.comment-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+/* Highlight color picker dots */
+.highlight-colors {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+}
+
+.color-dot {
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	cursor: pointer;
+	transition: transform 0.1s ease, border-color 0.1s ease;
+	padding: 0;
+}
+
+.color-dot:hover {
+	transform: scale(1.2);
+	border-color: rgba(255, 255, 255, 0.6);
+}
+
+.color-dot:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Marks page */
+.marks-chapter {
+	margin-bottom: 24px;
+}
+
+.marks-chapter-title {
+	display: block;
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--color-accent);
+	margin-bottom: 8px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.marks-chapter-title:hover {
+	text-decoration: underline;
+}
+
+.marks-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.mark-item {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	font-size: 14px;
+	padding: 6px 0;
+}
+
+.mark-color-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	margin-top: 4px;
+}
+
+.mark-ref {
+	font-weight: 600;
+	color: var(--color-text);
+	white-space: nowrap;
+}
+
+.mark-ref:hover {
+	color: var(--color-accent);
+}
+
+.mark-comment {
+	color: var(--color-text-secondary);
+	font-style: italic;
+}
+
+.import-result {
+	padding: 10px 16px;
+	background: var(--color-success-soft);
+	color: var(--color-success);
+	border-radius: var(--radius-md);
+	font-size: 14px;
+	font-weight: 500;
+	margin-bottom: 20px;
+}
+
 .text-center { text-align: center; }
 .mt-4 { margin-top: 16px; }
 .mt-8 { margin-top: 32px; }

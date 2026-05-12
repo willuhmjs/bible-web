@@ -8,6 +8,9 @@
 
 	let { data }: { data: PageData } = $props();
 
+	const parentData = $derived(page.data as { installedTranslations: Array<{ id: string; abbreviation: string; name: string }>; session: { user?: { id?: string } } | null });
+	const session = $derived(parentData.session);
+
 	// ── Picker state ──
 	let showPicker = $state(false);
 	let pickerBook = $state<string | null>(null);
@@ -38,7 +41,9 @@
 		goto(`/bible/${data.translation}/${bookSlug}/${chapter}`);
 	}
 
-	const parentData = $derived(page.data as { installedTranslations: Array<{ id: string; abbreviation: string; name: string }> });
+	const installedIds = $derived(
+		parentData.installedTranslations.map(t => t.id)
+	);
 
 	$effect(() => {
 		const currentIsCatholic = isCatholicTranslation(data.translation);
@@ -46,7 +51,6 @@
 			setTranslation(data.translation);
 			return;
 		}
-		const installedIds = parentData.installedTranslations.map(t => t.id);
 		const target = resolveTranslation(installedIds);
 		if (target) {
 			const isDeutero = currentBook?.testament === 'deuterocanonical';
@@ -108,6 +112,100 @@
 		setTimeout(() => showCopied = false, 2000);
 	}
 
+	// ── Marks state ──
+	const HIGHLIGHT_COLORS = ['#FFD700', '#90EE90', '#87CEEB', '#FFB6C1', '#DDA0DD'];
+
+	let marks = $state<Map<number, { color: string; comment: string | null }>>(new Map());
+
+	$effect(() => {
+		const m = new Map<number, { color: string; comment: string | null }>();
+		for (const mark of data.marks) {
+			m.set(mark.verse, { color: mark.color, comment: mark.comment });
+		}
+		marks = m;
+	});
+
+	let commentingVerse = $state<number | null>(null);
+	let commentText = $state('');
+	let savingMark = $state(false);
+
+	async function highlightVerses(color: string) {
+		if (!session?.user?.id || savingMark) return;
+		savingMark = true;
+
+		const sorted = [...selectedVerses].map(Number).sort((a, b) => a - b);
+		for (const v of sorted) {
+			const existing = marks.get(v);
+			if (existing?.color === color) {
+				await fetch('/api/marks', {
+					method: 'DELETE',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ book: data.bookSlug, chapter: data.chapter, verse: v })
+				});
+				marks.delete(v);
+			} else {
+				await fetch('/api/marks', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ book: data.bookSlug, chapter: data.chapter, verse: v, color })
+				});
+				marks.set(v, { color, comment: existing?.comment ?? null });
+			}
+		}
+		marks = new Map(marks);
+		savingMark = false;
+		clearSelection();
+	}
+
+	function startComment(verseNum: number) {
+		commentingVerse = verseNum;
+		commentText = marks.get(verseNum)?.comment ?? '';
+		clearSelection();
+	}
+
+	async function saveComment() {
+		if (!session?.user?.id || commentingVerse == null) return;
+		savingMark = true;
+
+		const existing = marks.get(commentingVerse);
+		await fetch('/api/marks', {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				book: data.bookSlug,
+				chapter: data.chapter,
+				verse: commentingVerse,
+				color: existing?.color ?? '#FFD700',
+				comment: commentText || null
+			})
+		});
+		marks.set(commentingVerse, { color: existing?.color ?? '#FFD700', comment: commentText || null });
+		marks = new Map(marks);
+		commentingVerse = null;
+		commentText = '';
+		savingMark = false;
+	}
+
+	async function deleteComment(verseNum: number) {
+		if (!session?.user?.id) return;
+		const existing = marks.get(verseNum);
+		if (!existing) return;
+
+		await fetch('/api/marks', {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				book: data.bookSlug,
+				chapter: data.chapter,
+				verse: verseNum,
+				color: existing.color,
+				comment: null
+			})
+		});
+		marks.set(verseNum, { color: existing.color, comment: null });
+		marks = new Map(marks);
+	}
+
 	// ── Reader settings ──
 	let showSettings = $state(false);
 	let fontSize = $state(20);
@@ -154,7 +252,8 @@
 		} else if (e.key === 'ArrowRight' && data.nextLink) {
 			goto(data.nextLink);
 		} else if (e.key === 'Escape') {
-			if (showPicker) { showPicker = false; pickerBook = null; }
+			if (commentingVerse != null) commentingVerse = null;
+			else if (showPicker) { showPicker = false; pickerBook = null; }
 			else if (showSettings) showSettings = false;
 			else if (selectedVerses.size > 0) clearSelection();
 		}
@@ -170,7 +269,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="content" onclick={(e) => {
-	if (!(e.target as HTMLElement).closest('.verse-wrapper') && !(e.target as HTMLElement).closest('.verse-actions')) {
+	if (!(e.target as HTMLElement).closest('.verse-wrapper') && !(e.target as HTMLElement).closest('.verse-actions') && !(e.target as HTMLElement).closest('.comment-input-area')) {
 		clearSelection();
 	}
 }}>
@@ -229,13 +328,35 @@
 		style="font-size: {fontSize}px; font-family: {fontFamilyMap[fontFamily]}; line-height: {lineHeightMap[lineSpacing]};"
 	>
 		{#each data.verses as verse}
+			{@const mark = marks.get(parseInt(verse.verse))}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<span
 				class="verse-wrapper"
 				class:selected={selectedVerses.has(verse.verse)}
+				class:highlighted={!!mark}
+				style={mark ? `--highlight-color: ${mark.color}` : ''}
 				onclick={(e) => toggleVerse(verse.verse, e)}
-			><span class="verse-num">{verse.verse}</span><span class="verse-text">{verse.text} </span></span>
+			><span class="verse-num">{verse.verse}</span><span class="verse-text">{verse.text} </span>{#if mark?.comment}<button class="comment-indicator" onclick={(e) => { e.stopPropagation(); startComment(parseInt(verse.verse)); }} title="View comment">&#x1f4ac;</button>{/if}</span>
+			{#if commentingVerse === parseInt(verse.verse)}
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div class="comment-input-area" onclick={(e) => e.stopPropagation()}>
+					<textarea
+						class="comment-textarea"
+						bind:value={commentText}
+						placeholder="Add a comment..."
+						rows="2"
+					></textarea>
+					<div class="comment-actions">
+						<button class="btn btn-primary btn-sm" onclick={saveComment} disabled={savingMark}>Save</button>
+						{#if marks.get(commentingVerse)?.comment}
+							<button class="btn btn-danger btn-sm" onclick={() => { deleteComment(commentingVerse!); commentingVerse = null; }}>Delete</button>
+						{/if}
+						<button class="btn btn-secondary btn-sm" onclick={() => commentingVerse = null}>Cancel</button>
+					</div>
+				</div>
+			{/if}
 		{/each}
 	</div>
 
@@ -258,6 +379,22 @@
 		<span class="ref">{selectedRef()}</span>
 		<span class="divider"></span>
 		<button onclick={copyVerses}>Copy</button>
+		{#if session}
+			<span class="divider"></span>
+			<div class="highlight-colors">
+				{#each HIGHLIGHT_COLORS as color}
+					<button
+						class="color-dot"
+						style="background: {color}"
+						onclick={() => highlightVerses(color)}
+						disabled={savingMark}
+						title="Highlight"
+					></button>
+				{/each}
+			</div>
+			<span class="divider"></span>
+			<button onclick={() => startComment([...selectedVerses].map(Number).sort((a, b) => a - b)[0])} disabled={savingMark}>Comment</button>
+		{/if}
 	</div>
 {/if}
 

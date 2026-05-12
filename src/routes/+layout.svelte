@@ -3,9 +3,12 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
+	import { signIn, signOut } from '@auth/sveltekit/client';
 	import { getMode, toggleMode, getTranslation, setTranslation, resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
 
 	let { children, data } = $props();
+
+	const session = $derived(data.session);
 
 	let theme = $state(
 		browser
@@ -62,6 +65,9 @@
 		<a href="/" class="nav-link" class:active={page.url.pathname === '/'}>Read</a>
 		<a href="/search" class="nav-link" class:active={isActive('/search')}>Search</a>
 		<a href="/translations" class="nav-link" class:active={isActive('/translations')}>Translations</a>
+		{#if session}
+			<a href="/marks" class="nav-link" class:active={isActive('/marks')}>Marks</a>
+		{/if}
 		{#if filteredTranslations.length > 0}
 			<div class="translation-selector">
 				<button class="translation-selector-btn" onclick={() => showTranslations = !showTranslations}>
@@ -113,6 +119,11 @@
 		<button class="theme-toggle" onclick={toggleTheme} aria-label="Toggle theme">
 			{theme === 'light' ? '☾' : '☀'}
 		</button>
+		{#if session}
+			<button class="btn btn-secondary btn-sm" onclick={() => signOut()}>Sign out</button>
+		{:else}
+			<button class="btn btn-primary btn-sm" onclick={() => signIn('authentik')}>Sign in</button>
+		{/if}
 	</div>
 </nav>
 
