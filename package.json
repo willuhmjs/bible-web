@@ -17,11 +17,11 @@
 		"@auth/prisma-adapter": "^2.8.0",
 		"@prisma/client": "^6.9.0",
 		"@prisma/adapter-pg": "^6.9.0",
-		"pg": "^8.16.0"
+		"pg": "^8.16.0",
+		"prisma": "^6.9.0"
 	},
 	"devDependencies": {
 		"@types/pg": "^8.15.2",
-		"prisma": "^6.9.0",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/adapter-node": "^5.5.4",
 		"@sveltejs/kit": "^2.57.0",

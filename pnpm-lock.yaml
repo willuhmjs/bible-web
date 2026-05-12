@@ -26,6 +26,9 @@ importers:
       pg:
         specifier: ^8.16.0
         version: 8.20.0
+      prisma:
+        specifier: ^6.9.0
+        version: 6.19.3(typescript@6.0.3)
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^7.0.1
@@ -45,9 +48,6 @@ importers:
       '@types/pg':
         specifier: ^8.15.2
         version: 8.20.0
-      prisma:
-        specifier: ^6.9.0
-        version: 6.19.3(typescript@6.0.3)
       svelte:
         specifier: ^5.55.2
         version: 5.55.5
