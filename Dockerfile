@@ -5,6 +5,9 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
+COPY prisma ./prisma
+RUN npx prisma generate
+
 COPY . .
 RUN pnpm build
 RUN pnpm prune --prod
@@ -24,6 +27,7 @@ WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app/build build/
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules node_modules/
 COPY --from=builder --chown=nodejs:nodejs /app/package.json .
+COPY --from=builder --chown=nodejs:nodejs /app/prisma prisma/
 
 RUN mkdir -p /app/data/bibles && chown -R nodejs:nodejs /app/data
 
