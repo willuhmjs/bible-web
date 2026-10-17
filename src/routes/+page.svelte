@@ -125,17 +125,17 @@
 				<div class="feature-card">
 					<span class="feature-icon"><Columns2 size="22" /></span>
 					<h3>Read in parallel</h3>
-					<p>Set any two translations side by side — Tyndale against the WEB, or English beside German — verse for verse.</p>
+					<p>Set any two translations side by side &mdash; Tyndale beside the WEB, English beside German &mdash; verse for verse.</p>
 				</div>
 				<div class="feature-card">
 					<span class="feature-icon"><Search size="22" /></span>
 					<h3>Find any verse</h3>
-					<p>Instant full-text search across every book you have installed, with the words you sought marked in place.</p>
+					<p>Instant full-text search across every installed book, with the words you sought marked right in place.</p>
 				</div>
 				<div class="feature-card">
 					<span class="feature-icon"><ShieldCheck size="22" /></span>
 					<h3>Private by design</h3>
-					<p>No accounts required to read, no trackers, nothing sent to third parties. Your library lives on your own server.</p>
+					<p>No account to read, no trackers, nothing sent to third parties. The library lives on your server.</p>
 				</div>
 			</div>
 		</section>
