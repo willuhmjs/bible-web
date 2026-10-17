@@ -2,6 +2,18 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
+	import {
+		BookOpen,
+		ChevronDown,
+		ChevronLeft,
+		ChevronRight,
+		Copy,
+		Columns2,
+		MessageSquareText,
+		Settings2,
+		Trash2,
+		X
+	} from 'lucide-svelte';
 	import { BOOKS } from '$lib/books.js';
 	import { getMode, setTranslation, resolveTranslation, isCatholicTranslation } from '$lib/mode.svelte.js';
 	import type { PageData } from './$types.js';
@@ -88,6 +100,12 @@
 
 		selectedVerses = next;
 		lastClickedVerse = verseNum;
+	}
+
+	function toggleVerseKeyboard(verseNum: string, event: KeyboardEvent) {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		toggleVerse(verseNum, { shiftKey: event.shiftKey } as MouseEvent);
 	}
 
 	function clearSelection() {
@@ -241,7 +259,7 @@
 		mono: 'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace'
 	};
 
-	const lineHeightMap = { compact: '1.5', normal: '1.9', relaxed: '2.2' };
+	const lineHeightMap = { compact: '1.5', normal: '1.85', relaxed: '2.15' };
 
 	if (browser) {
 		const saved = localStorage.getItem('bible-reader-settings');
@@ -281,12 +299,14 @@
 			else if (selectedVerses.size > 0) clearSelection();
 		}
 	}
+
+	const abbr = $derived(data.translation.toUpperCase());
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
-	<title>{data.bookName} {data.chapter} - Bible</title>
+	<title>{data.bookName} {data.chapter} ({abbr}) - Bible</title>
 </svelte:head>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -297,37 +317,54 @@
 	}
 }}>
 	<div class="chapter-header">
-		<div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
-			<button class="btn btn-secondary btn-sm" onclick={() => { showPicker = true; pickerBook = null; }}>
-				{data.bookName} {data.chapter} &#9662;
+		<div class="reader-controls">
+			<button class="btn btn-secondary btn-sm" onclick={() => { showPicker = true; pickerBook = null; }} aria-label="Change book or chapter">
+				<BookOpen size="15" />
+				{data.bookName} {data.chapter}
+				<ChevronDown size="14" />
 			</button>
 
 			<a href="/bible/{data.translation}/{data.bookSlug}/{data.chapter}/parallel" class="btn btn-secondary btn-sm">
-				Parallel
+				<Columns2 size="15" /> Parallel
 			</a>
 
 			<div style="position: relative;">
-				<button class="btn btn-secondary btn-sm" onclick={() => showSettings = !showSettings} aria-label="Reader settings">
-					Aa
+				<button
+					class="btn btn-secondary btn-sm"
+					onclick={() => showSettings = !showSettings}
+					onkeydown={(e) => { if (e.key === 'Escape') showSettings = false; }}
+					aria-label="Reader settings"
+					aria-expanded={showSettings}
+					aria-haspopup="dialog"
+				>
+					<Settings2 size="15" /> Text
 				</button>
 				{#if showSettings}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div style="position: fixed; inset: 0; z-index: 199;" onclick={() => showSettings = false}></div>
-					<div class="settings-panel">
+					<div class="settings-panel" role="dialog" aria-label="Reader settings">
 						<div class="settings-group">
 							<div style="display: flex; justify-content: space-between; align-items: center;">
-								<div class="settings-label">Font Size</div>
+								<div class="settings-label" style="margin-bottom: 0;">Text Size</div>
 								<div class="settings-value">{fontSize}px</div>
 							</div>
-							<input type="range" class="settings-slider" min="14" max="32" bind:value={fontSize} />
+							<div style="height: 10px;"></div>
+							<input
+								type="range"
+								class="settings-slider"
+								min="14"
+								max="32"
+								bind:value={fontSize}
+								aria-label="Text size"
+							/>
 						</div>
 						<div class="settings-group">
-							<div class="settings-label">Font</div>
+							<div class="settings-label">Typeface</div>
 							<div class="settings-options">
-								<button class="settings-option" class:active={fontFamily === 'serif'} onclick={() => fontFamily = 'serif'}>Serif</button>
-								<button class="settings-option" class:active={fontFamily === 'sans'} onclick={() => fontFamily = 'sans'}>Sans</button>
-								<button class="settings-option" class:active={fontFamily === 'mono'} onclick={() => fontFamily = 'mono'}>Mono</button>
+								<button class="settings-option font-opt-serif" class:active={fontFamily === 'serif'} onclick={() => fontFamily = 'serif'}>Serif</button>
+								<button class="settings-option font-opt-sans" class:active={fontFamily === 'sans'} onclick={() => fontFamily = 'sans'}>Sans</button>
+								<button class="settings-option font-opt-mono" class:active={fontFamily === 'mono'} onclick={() => fontFamily = 'mono'}>Mono</button>
 							</div>
 						</div>
 						<div class="settings-group">
@@ -345,6 +382,7 @@
 	</div>
 
 	<h1 class="chapter-title">{data.bookName} {data.chapter}</h1>
+	<div class="chapter-ornament" aria-hidden="true"><span class="diamond"></span></div>
 
 	<div
 		class="scripture"
@@ -352,15 +390,18 @@
 	>
 		{#each data.verses as verse}
 			{@const mark = marks.get(parseInt(verse.verse))}
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<span
 				class="verse-wrapper"
 				class:selected={selectedVerses.has(verse.verse)}
 				class:highlighted={!!mark}
 				style={mark ? `--highlight-color: ${mark.color}` : ''}
+				role="button"
+				tabindex="0"
+				aria-pressed={selectedVerses.has(verse.verse)}
+				aria-label={`Verse ${verse.verse}`}
 				onclick={(e) => toggleVerse(verse.verse, e)}
-			><span class="verse-num">{verse.verse}</span><span class="verse-text">{verse.text} </span>{#if mark?.comment}<button class="comment-indicator" onclick={(e) => { e.stopPropagation(); startComment(parseInt(verse.verse)); }} title="View comment">&#x1f4ac;</button>{/if}</span>
+				onkeydown={(e) => toggleVerseKeyboard(verse.verse, e)}
+			><span class="verse-num">{verse.verse}</span><span class="verse-text">{verse.text} </span>{#if mark?.comment}<button class="comment-indicator" onclick={(e) => { e.stopPropagation(); startComment(parseInt(verse.verse)); }} title="View comment" aria-label="View comment on verse {verse.verse}"><MessageSquareText size="11" /></button>{/if}</span>
 			{#if commentingVerse === parseInt(verse.verse)}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -383,25 +424,25 @@
 		{/each}
 	</div>
 
-	<div class="chapter-nav">
+	<nav class="chapter-nav" aria-label="Chapter navigation">
 		{#if data.prevLink}
-			<a href={data.prevLink} class="chapter-nav-btn">&larr; Previous</a>
+			<a href={data.prevLink} class="chapter-nav-btn"><ChevronLeft size="17" /> Previous</a>
 		{:else}
 			<span></span>
 		{/if}
 		{#if data.nextLink}
-			<a href={data.nextLink} class="chapter-nav-btn">Next &rarr;</a>
+			<a href={data.nextLink} class="chapter-nav-btn">Next <ChevronRight size="17" /></a>
 		{:else}
 			<span></span>
 		{/if}
-	</div>
+	</nav>
 </div>
 
 {#if selectedVerses.size > 0}
-	<div class="verse-actions">
+	<div class="verse-actions" role="toolbar" aria-label="Verse actions">
 		<span class="ref">{selectedRef()}</span>
 		<span class="divider"></span>
-		<button onclick={copyVerses}>Copy</button>
+		<button onclick={copyVerses}><Copy size="14" /> <span class="btn-label">Copy</span></button>
 		{#if session}
 			<span class="divider"></span>
 			<div class="highlight-colors">
@@ -412,21 +453,26 @@
 						onclick={() => highlightVerses(color)}
 						disabled={savingMark}
 						title="Highlight"
+						aria-label="Highlight verse in color {color}"
 					></button>
 				{/each}
 			</div>
 			<span class="divider"></span>
-			<button onclick={() => startComment([...selectedVerses].map(Number).sort((a, b) => a - b)[0])} disabled={savingMark}>Comment</button>
+			<button onclick={() => startComment([...selectedVerses].map(Number).sort((a, b) => a - b)[0])} disabled={savingMark}>
+				<MessageSquareText size="14" /> <span class="btn-label">Comment</span>
+			</button>
 			{#if selectionHasMarks()}
 				<span class="divider"></span>
-				<button onclick={removeHighlights} disabled={savingMark}>Remove</button>
+				<button onclick={removeHighlights} disabled={savingMark}><Trash2 size="14" /> <span class="btn-label">Remove</span></button>
 			{/if}
 		{/if}
+		<span class="divider"></span>
+		<button onclick={clearSelection} aria-label="Clear selection"><X size="14" /></button>
 	</div>
 {/if}
 
 {#if showCopied}
-	<div class="copied-toast">Copied to clipboard</div>
+	<div class="copied-toast" role="status"><Copy size="13" /> Copied to clipboard</div>
 {/if}
 
 {#if showPicker}
@@ -435,18 +481,19 @@
 	<div class="picker-overlay" onclick={() => { showPicker = false; pickerBook = null; }}>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="picker-modal" onclick={(e) => e.stopPropagation()}>
+		<div class="picker-modal" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Select a book and chapter">
+			<button class="picker-close" onclick={() => { showPicker = false; pickerBook = null; }} aria-label="Close"><X size="17" /></button>
 			{#if !pickerBook}
 				<h2>Select a Book</h2>
 				<div class="picker-tabs">
-					<button class="picker-tab" class:active={selectedTestament === 'old'} onclick={() => selectedTestament = 'old'}>
+					<button class="picker-tab" class:active={selectedTestament === 'old'} onclick={() => selectedTestament = 'old'} aria-pressed={selectedTestament === 'old'}>
 						Old Testament
 					</button>
-					<button class="picker-tab" class:active={selectedTestament === 'new'} onclick={() => selectedTestament = 'new'}>
+					<button class="picker-tab" class:active={selectedTestament === 'new'} onclick={() => selectedTestament = 'new'} aria-pressed={selectedTestament === 'new'}>
 						New Testament
 					</button>
 				</div>
-				<div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));">
+				<div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));">
 					{#each displayedBooks as book}
 						<button
 							class="book-grid-item"
@@ -454,7 +501,7 @@
 							onclick={() => pickerBook = book.slug}
 						>
 							{#if book.testament === 'deuterocanonical'}
-								<svg class="deutero-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+								<svg class="deutero-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-label="Deuterocanonical book">
 									<g stroke="#C0A030" stroke-width="1.8">
 										<ellipse cx="5.5" cy="19.5" rx="3" ry="3.5" fill="none" />
 										<line x1="7.5" y1="16.8" x2="19" y2="5.3" />
@@ -476,10 +523,11 @@
 					{/each}
 				</div>
 			{:else if pickerBookInfo}
-				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-					<button class="btn btn-secondary btn-sm" onclick={() => pickerBook = null}>&larr;</button>
-					<h2 style="margin: 0;">{pickerBookInfo.name}</h2>
+				<div class="picker-back-head">
+					<button class="btn btn-secondary btn-sm" onclick={() => pickerBook = null} aria-label="Back to books">&larr;</button>
+					<h2>{pickerBookInfo.name}</h2>
 				</div>
+				<div class="picker-section-label">{pickerBookInfo.chapters} chapters</div>
 				<div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));">
 					{#each Array.from({ length: pickerBookInfo.chapters }, (_, i) => i + 1) as ch}
 						<button
