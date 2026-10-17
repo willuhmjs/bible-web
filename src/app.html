@@ -9,8 +9,9 @@
 	<body data-sveltekit-preload-data="hover">
 		<script>
 			(function() {
+				var forced = new URLSearchParams(location.search).get('theme');
 				var saved = localStorage.getItem('bible-theme');
-				var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+				var theme = forced || saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 				document.documentElement.setAttribute('data-theme', theme);
 			})();
 		</script>
