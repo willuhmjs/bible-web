@@ -65,9 +65,9 @@
 </svelte:head>
 
 <div class="content">
-	<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 32px;">
+	<div class="marks-toolbar">
 		<h1 class="page-title" style="margin-bottom: 0;">My Marks</h1>
-		<div style="display: flex; gap: 8px;">
+		<div class="marks-actions">
 			<button class="btn btn-secondary btn-sm" onclick={exportMarks}>Export</button>
 			<button class="btn btn-secondary btn-sm" onclick={importMarks} disabled={importing}>
 				{importing ? 'Importing...' : 'Import'}

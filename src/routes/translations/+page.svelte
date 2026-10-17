@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { onDestroy } from 'svelte';
+	import { Check, Download, Library, Trash2 } from 'lucide-svelte';
 	import type { PageData } from './$types.js';
 	import type { Translation } from '$lib/types.js';
 	import { getMode } from '$lib/mode.svelte.js';
@@ -114,19 +115,28 @@
 	<title>Translations - Bible</title>
 </svelte:head>
 
-<div class="content">
-	<h1 class="page-title">{mode === 'catholic' ? 'Catholic' : 'Protestant'} Translations</h1>
-	{#if notInstalled.length > 0}
-		<div style="margin-bottom: 20px;">
+<div class="content" style="max-width: 860px;">
+	<div class="trans-toolbar">
+		<div>
+			<h1 class="page-title" style="margin-bottom: 4px;">{mode === 'catholic' ? 'Catholic' : 'Protestant'} Translations</h1>
+			<p style="color: var(--color-text-secondary); font-size: 14px;">
+				Stored on your server once, readable forever &mdash; no account needed.
+			</p>
+		</div>
+		{#if notInstalled.length > 0}
 			<button
 				class="btn btn-primary"
 				onclick={downloadAll}
 				disabled={isBusy}
 			>
-				{isBusy ? 'Downloading...' : 'Download All'}
+				{#if isBusy}
+					<span class="spinner spinner-sm"></span> Downloading...
+				{:else}
+					<Download size="16" /> Download All ({notInstalled.length})
+				{/if}
 			</button>
-		</div>
-	{/if}
+		{/if}
+	</div>
 
 	{#if errorMsg}
 		<div class="card" style="border-color: var(--color-danger); margin-bottom: 16px; color: var(--color-danger);">
@@ -139,7 +149,7 @@
 			<div class="language-group-title">{language}</div>
 			<div style="display: flex; flex-direction: column; gap: 8px;">
 				{#each translations as t (t.id)}
-					<div class="card translation-card">
+					<div class="card translation-card" class:is-installed={t.installed}>
 						<div class="translation-info">
 							<h3>
 								{t.name}
@@ -147,9 +157,9 @@
 							</h3>
 							<p>{t.description}</p>
 						</div>
-						<div style="flex-shrink: 0; display: flex; align-items: center; gap: 8px;">
+						<div class="translation-card-actions">
 							{#if t.installed}
-								<span class="installed-badge">Installed</span>
+								<span class="installed-badge"><Check size="13" /> Installed</span>
 								<button
 									class="btn btn-danger btn-sm"
 									onclick={() => remove(t.id)}
@@ -160,14 +170,14 @@
 							{:else}
 								<button
 									class="btn btn-primary btn-sm"
-									style="min-width: 100px;"
+									style="min-width: 110px;"
 									onclick={() => download(t.id)}
 									disabled={isBusy}
 								>
 									{#if busyIds.has(t.id)}
 										<span class="spinner spinner-sm"></span>
 									{:else}
-										Download
+										<Download size="14" /> Download
 									{/if}
 								</button>
 							{/if}
