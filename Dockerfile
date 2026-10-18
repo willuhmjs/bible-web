@@ -2,8 +2,8 @@ FROM node:24-alpine3.23 AS builder
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable pnpm && pnpm install --frozen-lockfile --ignore-scripts
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN corepack enable pnpm && corepack prepare pnpm@12.14.0 --activate && pnpm install --frozen-lockfile --ignore-scripts
 
 COPY prisma ./prisma
 RUN npx prisma generate
